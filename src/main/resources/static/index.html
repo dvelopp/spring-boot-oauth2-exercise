@@ -21,10 +21,18 @@
         <button ng-click="home.logout()" class="btn btn-primary">Logout</button>
     </div>
 </div>
+<div class="container text-danger" ng-show="home.error">
+    There was an error (bad credentials).
+</div>
 <script type="text/javascript" src="/webjars/angularjs/angular.min.js"></script>
 <script type="text/javascript">
-    angular.module("app", []).controller("home", function ($http) {
+    angular.module("app", []).controller("home", function ($http,$location) {
         var self = this;
+        if ($location
+            && $location.absUrl().indexOf("error=true") >= 0) {
+            self.authenticated = false;
+            self.error = true;
+        }
         $http.get("/user").success(function (data) {
             self.user = data.userAuthentication.details.name;
             self.authenticated = true;
@@ -33,6 +41,10 @@
             self.authenticated = false;
         });
         self.logout = function() {
+            if ($location.absUrl().indexOf("error=true") >= 0) {
+                self.authenticated = false;
+                self.error = true;
+            }
             $http.post('/logout', {}).success(function() {
                 self.authenticated = false;
                 $location.path("/");
